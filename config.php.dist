@@ -27,10 +27,11 @@
  * versions of weathermap, these two files were located in the plugin
  * directory.  However, in Cacti 1.3, the archive function will interfere
  * in that locations setting.  So, pick a location that is owned by
- * the apache user, but is not in the Cacti base path.
+ * the apache user, but is not in the Cacti base path.  Ensure that
+ * the path's end with a '/'.
  */
-$configdir = '/usr/share/cacti/site/config';
-$outputdir = '/usr/share/cacti/site/output';
+$configdir = '/usr/share/cacti/site/weathermap/configs/';
+$outputdir = '/usr/share/cacti/site/weathermap/output/';
 
 /* we will define them here */
 if (!defined(WM_CONFIGDIR)) {
@@ -40,5 +41,3 @@ if (!defined(WM_CONFIGDIR)) {
 if (!defined(WM_OUTPUTDIR)) {
 	define('WM_OUTPUTDIR', $outputdir);
 }
-
-define('WM_CONFIG', true);
