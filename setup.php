@@ -45,23 +45,30 @@ if (!defined('WM_COPYRIGHT_YEARS')) {
 }
 
 function plugin_weathermap_install() {
-	api_plugin_register_hook('weathermap', 'config_arrays',   'weathermap_config_arrays',   'setup.php');
-	api_plugin_register_hook('weathermap', 'config_settings', 'weathermap_config_settings', 'setup.php');
+	api_plugin_register_hook('weathermap', 'config_arrays',         'weathermap_config_arrays',        'setup.php');
+	api_plugin_register_hook('weathermap', 'config_settings',       'weathermap_config_settings',      'setup.php');
 
-	api_plugin_register_hook('weathermap', 'top_header_tabs',       'weathermap_show_tab', 'setup.php');
-	api_plugin_register_hook('weathermap', 'top_graph_header_tabs', 'weathermap_show_tab', 'setup.php');
-	api_plugin_register_hook('weathermap', 'draw_navigation_text', 'weathermap_draw_navigation_text', 'setup.php');
+	api_plugin_register_hook('weathermap', 'top_header_tabs',       'weathermap_show_tab',             'setup.php');
+	api_plugin_register_hook('weathermap', 'top_graph_header_tabs', 'weathermap_show_tab',             'setup.php');
+	api_plugin_register_hook('weathermap', 'draw_navigation_text',  'weathermap_draw_navigation_text', 'setup.php');
 
-	api_plugin_register_hook('weathermap', 'top_graph_refresh', 'weathermap_top_graph_refresh', 'setup.php');
-	api_plugin_register_hook('weathermap', 'page_title',        'weathermap_page_title',        'setup.php');
+	api_plugin_register_hook('weathermap', 'top_graph_refresh',     'weathermap_top_graph_refresh',    'setup.php');
+	api_plugin_register_hook('weathermap', 'page_title',            'weathermap_page_title',           'setup.php');
 
-	api_plugin_register_hook('weathermap', 'poller_top',    'weathermap_poller_top',    'setup.php');
-	api_plugin_register_hook('weathermap', 'poller_output', 'weathermap_poller_output', 'setup.php');
-	api_plugin_register_hook('weathermap', 'poller_bottom', 'weathermap_poller_bottom', 'setup.php');
+	api_plugin_register_hook('weathermap', 'poller_top',            'weathermap_poller_top',           'setup.php');
+	api_plugin_register_hook('weathermap', 'poller_output',         'weathermap_poller_output',        'setup.php');
+	api_plugin_register_hook('weathermap', 'poller_bottom',         'weathermap_poller_bottom',        'setup.php');
 
 	api_plugin_register_realm('weathermap', 'weathermap-cacti-plugin.php', 'View Weathermaps', 1);
 	api_plugin_register_realm('weathermap', 'weathermap-cacti-plugin-mgmt.php,weathermap-cacti-plugin-mgmt-groups.php', 'Manage Weathermap', 1);
 	api_plugin_register_realm('weathermap', 'weathermap-cacti-plugin-editor.php', 'Edit Weathermaps', 1);
+
+	weathermap_determine_config();
+
+	if (!defined('WM_CONFIGDIR')) {
+		raise_message('weathermap_info', __('Please rename your config.php.dist and in there define your output and config directories.  Make sure you move those directories out of the WeatherMap plugin directory.', 'weathermap'), MESSAGE_LEVEL_ERROR);
+		return false;
+	}
 
 	weathermap_setup_table();
 }
@@ -95,7 +102,16 @@ function plugin_weathermap_numeric_version() {
 }
 
 function plugin_weathermap_check_config() {
-	plugin_weathermap_upgrade();
+	// Here we will check to ensure everything is configured
+	if (!file_exists(dirname(__FILE__) . '/config.php')) {
+		raise_message('weathermap_info', __('Please rename your config.php.dist and in there define your output and config directories.  Make sure you move those directories out of the WeatherMap plugin directory.', 'weathermap'), MESSAGE_LEVEL_ERROR);
+
+		return false;
+	}
+
+	if (api_plugin_installed('weathermap')) {
+		plugin_weathermap_upgrade();
+	}
 
 	return true;
 }
@@ -110,49 +126,62 @@ function plugin_weathermap_upgrade() {
 
 	include_once($config['base_path'] . '/plugins/weathermap/lib/poller-common.php');
 
-	$current = plugin_weathermap_version();
-	$current = $current['version'];
-	$old     = db_fetch_row("SELECT * FROM plugin_config WHERE directory='weathermap'");
+	if (function_exists('api_plugin_upgrade_register')) {
+		if (!api_plugin_upgrade_register('syslog')) {
+			// No upgrade required
+			return;
+		}
+	} else {
+		$info    = plugin_weathermap_version();
+		$current = $info['version'];
+		$old     = db_fetch_cell("SELECT version FROM plugin_config WHERE directory='weathermap'");
 
-	if ($current != $old) {
-		db_execute_prepared('UPDATE plugin_realms
-			SET display = ? WHERE file = ?',
-			array('View Weathermaps', 'weathermap-cacti-plugin.php'));
-
-		db_execute_prepared('UPDATE plugin_realms
-			SET display = ? WHERE file = ?',
-			array('Edit Weathermaps', 'weathermap-cacti-plugin-editor.php'));
-
-		db_execute_prepared('UPDATE plugin_realms
-			SET display = ? WHERE file = ?',
-			array('Manage Weathermap', 'weathermap-cacti-plugin-mgmt.php'));
-
-		db_execute_prepared('UPDATE plugin_realms
-			SET file = ? WHERE file = ?',
-			array('weathermap-cacti-plugin-mgmt.php,weathermap-cacti-plugin-mgmt-groups.php', 'weathermap-cacti-plugin-mgmt.php'));
-
-		/* update the plugin information */
-		$info = plugin_weathermap_version();
-		$id   = db_fetch_cell("SELECT id FROM plugin_config WHERE directory='weathermap'");
-
-		db_execute_prepared('UPDATE plugin_config
-			SET name = ?, author = ?, webpage = ?, version = ?
-			WHERE id = ?',
-			array(
-				$info['longname'],
-				$info['author'],
-				$info['homepage'],
-				$info['version'],
-				$id
-			)
-		);
-
-		db_execute('DELETE FROM plugin_hooks WHERE name = "weathermap" AND hook = "page_head"');
-
-		weathermap_repair_maps();
+		if ($current != $old) {
+			db_execute_prepared("UPDATE plugin_config SET
+				version = ?, name = ?, author = ?, webpage = ?
+				WHERE directory = ?",
+				array(
+					$info['version'],
+					$info['longname'],
+					$info['author'],
+					$info['homepage'],
+					$info['name']
+				)
+			);
+		} else {
+			// No upgrade required
+			return;
+		}
 	}
 
+	db_execute_prepared('UPDATE plugin_realms
+		SET display = ? WHERE file = ?',
+		array('View Weathermaps', 'weathermap-cacti-plugin.php'));
+
+	db_execute_prepared('UPDATE plugin_realms
+		SET display = ? WHERE file = ?',
+		array('Edit Weathermaps', 'weathermap-cacti-plugin-editor.php'));
+
+	db_execute_prepared('UPDATE plugin_realms
+		SET display = ? WHERE file = ?',
+		array('Manage Weathermap', 'weathermap-cacti-plugin-mgmt.php'));
+
+	db_execute_prepared('UPDATE plugin_realms
+		SET file = ? WHERE file = ?',
+		array('weathermap-cacti-plugin-mgmt.php,weathermap-cacti-plugin-mgmt-groups.php', 'weathermap-cacti-plugin-mgmt.php'));
+
+	db_execute('DELETE FROM plugin_hooks WHERE name = "weathermap" AND hook = "page_head"');
+
+	weathermap_repair_maps();
+
 	return false;
+}
+
+function weathermap_determine_config() {
+	// Setup the location for weathermap files
+	if (!defined('WM_CONFIGDIR') && file_exists(dirname(__FILE__) . '/config.php')) {
+		include_once(dirname(__FILE__) . '/config.php');
+	}
 }
 
 function weathermap_poller_top() {
@@ -642,8 +671,19 @@ function weathermap_config_arrays() {
 }
 
 function weathermap_tree_item_render($leaf) {
-	$outdir  = __DIR__ . '/output/';
-	$confdir = __DIR__ . '/configs/';
+	weathermap_determine_config();
+
+	if (defined('WM_CONFIGDIR')) {
+		$confdir = WM_CONFIGDIR;
+	} else {
+		$confdir = __DIR__ . '/configs/';
+	}
+
+	if (defined('WM_OUTPUTDIR')) {
+		$outdir  = WM_OUTPUTDIR;
+	} else {
+		$outdir  = __DIR__ . '/output/';
+	}
 
 	$map = db_fetch_row_prepared('SELECT weathermap_maps.*
 		FROM weathermap_auth, weathermap_maps

@@ -1,6 +1,6 @@
-# PHP Network Weathermap 1.0
+# PHP Network Weathermap 
 
-This is PHP Network Weathermap fork, version 1.0.  The PHP Weathermap was
+This is PHP Network Weathermap fork, version 1.x.  The PHP Weathermap was
 originally by Howard Jones (howie@thingy.com).  As Howie has scaled back his
 Cacti plugin development work, we will release this version that incorporates
 his core framework from the 0.98 version.  In future releases, we will look
@@ -34,7 +34,7 @@ tutorials and updates available at Howard Jone's site:
 
     http://www.network-weathermap.com/
 
-## Important Notes
+## Important Notes Prior to Install or Upgrade
 
 This version of Weathermap only works with Cacti 1.2.x and above only.
 beta, yet non-production use at this time.
@@ -42,6 +42,12 @@ beta, yet non-production use at this time.
 The location of backgrounds and object images has changed!  The upgrade script 
 will attempt to move these backgrounds and images to the new locations, 
 but you may have some cleanup to do especially if you customized the locations.
+
+IMPORTANT NOTE: Additionally, in this version, you will not be able to 
+install this plugin if you have not copies config.php.dist to config.php 
+and properly created the output and config directories.  It is highly 
+suggested that they be set to a location outside of the Cacti Web Root.  
+They must also be owned by the web-server.
 
 WARNING: Before upgrading make ensure the poller account can move config file
 images into into the plugins various images directories.  Fail to do so 

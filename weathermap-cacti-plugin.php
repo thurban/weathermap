@@ -46,6 +46,20 @@ chdir('../../');
 include_once('./include/auth.php');
 include_once($config['base_path'] . '/plugins/weathermap/lib/WeatherMap.class.php');
 
+weathermap_determine_config();
+
+if (defined('WM_CONFIGDIR')) {
+	$confdir = WM_CONFIGDIR;
+} else {
+	$confdir = __DIR__ . '/configs/';
+}
+
+if (defined('WM_OUTPUTDIR')) {
+	$outdir  = WM_OUTPUTDIR;
+} else {
+	$outdir  = __DIR__ . '/output/';
+}
+
 $showversionbox = read_config_option('weathermap_showversion');
 
 set_default_action();
@@ -72,10 +86,10 @@ switch (get_request_var('action')) {
 					array($id));
 
 				if (cacti_sizeof($map)) {
-					$imagefile = __DIR__ . '/output/' . $map['filehash'] . '.' . $imageformat;
+					$imagefile = $outdir . '/' . $map['filehash'] . '.' . $imageformat;
 
 					if ($action == 'viewthumb') {
-						$imagefile = __DIR__ . '/output/' . $map['filehash'] . '.thumb.' . $imageformat;
+						$imagefile = $outdir . '/' . $map['filehash'] . '.thumb.' . $imageformat;
 					}
 
 					$orig_cwd = getcwd();
@@ -112,7 +126,7 @@ switch (get_request_var('action')) {
 					array($id));
 
 				if (cacti_sizeof($map)) {
-					$mapfile  = __DIR__ . '/configs/' . $map['configfile'];
+					$mapfile  = $confdir . '/' . $map['configfile'];
 					$orig_cwd = getcwd();
 
 					chdir(__DIR__);
@@ -175,8 +189,6 @@ switch (get_request_var('action')) {
 					print '<tr><td>';
 
 					# print "Generating map $id here now from ".$map[0]['configfile'];
-
-					$confdir = __DIR__ . '/configs/';
 
 					// everything else in this file is inside this else
 					$mapname = $map[0]['configfile'];
@@ -362,8 +374,17 @@ function weathermap_singleview($mapid) {
 		$is_wm_admin = false;
 	}
 
-	$outdir  = __DIR__ . '/output/';
-	$confdir = __DIR__ . '/configs/';
+	if (defined('WM_CONFIGDIR')) {
+		$confdir = WM_CONFIGDIR;
+	} else {
+		$confdir = __DIR__ . '/configs/';
+	}
+
+	if (defined('WM_OUTPUTDIR')) {
+		$outdir  = WM_OUTPUTDIR;
+	} else {
+		$outdir  = __DIR__ . '/output/';
+	}
 
 	$userid = $_SESSION['sess_user_id'];
 
@@ -492,8 +513,17 @@ function weathermap_thumbview($limit_to_group = -1) {
 		$i = 0;
 
 		if (cacti_sizeof($maplist)) {
-			$outdir  = __DIR__ . '/output/';
-			$confdir = __DIR__ . '/configs/';
+			if (defined('WM_CONFIGDIR')) {
+				$confdir = WM_CONFIGDIR;
+			} else {
+				$confdir = __DIR__ . '/configs/';
+			}
+
+			if (defined('WM_OUTPUTDIR')) {
+				$outdir  = WM_OUTPUTDIR;
+			} else {
+				$outdir  = __DIR__ . '/output/';
+			}
 
 			$imageformat = strtolower(read_config_option('weathermap_output_format'));
 
@@ -629,8 +659,17 @@ function weathermap_fullview($cycle = false, $firstonly = false, $limit_to_group
 	if (cacti_sizeof($maplist)) {
 		print "<div class='all_map_holder $class'>";
 
-		$outdir  = __DIR__ . '/output/';
-		$confdir = __DIR__ . '/configs/';
+		if (defined('WM_CONFIGDIR')) {
+			$confdir = WM_CONFIGDIR;
+		} else {
+			$confdir = __DIR__ . '/configs/';
+		}
+
+		if (defined('WM_OUTPUTDIR')) {
+			$outdir  = WM_OUTPUTDIR;
+		} else {
+			$outdir  = __DIR__ . '/output/';
+		}
 
 		foreach ($maplist as $map) {
 			$i++;
