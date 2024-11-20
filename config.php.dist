@@ -34,10 +34,10 @@ $configdir = '/usr/share/cacti/site/weathermap/configs/';
 $outputdir = '/usr/share/cacti/site/weathermap/output/';
 
 /* we will define them here */
-if (!defined(WM_CONFIGDIR)) {
+if (!defined('WM_CONFIGDIR')) {
 	define('WM_CONFIGDIR', $configdir);
 }
 
-if (!defined(WM_OUTPUTDIR)) {
+if (!defined('WM_OUTPUTDIR')) {
 	define('WM_OUTPUTDIR', $outputdir);
 }
