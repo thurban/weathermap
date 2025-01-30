@@ -1,8 +1,18 @@
-# ChangeLog
+# CHANGELOG.md
 
---- develop ---
-* feature: Require a config.php file to identify the locations of the output and config directories outside of the Cacti webroot.
-* feature: Support Cacti 1.3.x plugin configuration check functions and need to relocate the output and config directories.
+## Background
+
+This version of Weathermap is a fork of the original work by Howard Jones, and brings his 0.98x version
+into the Cacti 1.x world.  Although, the change notes are roughly correct,, there were just too
+many changes to capture them all.
+
+There is a more substantial release that Howie has been working on in the works, that is a fundamental shift
+in the framework and provides several improvements to prior releases. There are also small usability changes 
+aimed at reducing repeat "error reports" in the forums.
+
+IMPORTANT NOTE: This version only works on CACTI 1.x++!
+
+## Changes
 
 --- 1.3.1 ---
 * issue#141: Bug Weathermap - Map Style can't change Link Labels to Bits/Sec

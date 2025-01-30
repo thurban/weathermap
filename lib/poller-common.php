@@ -99,23 +99,13 @@ function weathermap_check_cron($time, $string) {
 
 function weathermap_repair_maps() {
 	global $config;
-	weathermap_determine_config();
 
 	$mydir = $config['base_path'] . '/plugins/weathermap/';
 
 	include_once($mydir . 'lib/WeatherMap.class.php');
 
-	if (defined('WM_CONFIGDIR')) {
-		$confdir = WM_CONFIGDIR;
-	} else {
-		$confdir = $mydir . '/configs/';
-	}
-
-	if (defined('WM_OUTPUTDIR')) {
-		$outdir  = WM_OUTPUTDIR;
-	} else {
-		$outdir  = $mydir . '/output/';
-	}
+	$outdir  = $mydir . 'output';
+	$confdir = $mydir . 'configs';
 
 	$mapcount = 0;
 
@@ -298,17 +288,8 @@ function weathermap_run_maps($mydir, $force = false, $maps = array()) {
 		cacti_log('NOTE: Weathermap Run is a Force Run', false, 'WEATHERMAP');
 	}
 
-	if (defined('WM_CONFIGDIR')) {
-		$confdir = WM_CONFIGDIR;
-	} else {
-		$confdir = $mydir . '/configs/';
-	}
-
-	if (defined('WM_OUTPUTDIR')) {
-		$outdir  = WM_OUTPUTDIR;
-	} else {
-		$outdir  = $mydir . '/output/';
-	}
+	$outdir  = $mydir . '/output';
+	$confdir = $mydir . '/configs';
 
 	$mapcount = 0;
 
